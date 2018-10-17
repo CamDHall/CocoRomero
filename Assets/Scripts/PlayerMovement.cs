@@ -8,21 +8,23 @@ public class PlayerMovement : MonoBehaviour {
     public float _horizontalCooldownAmount;
     public float forceAmount;
 
+    float horizontalCooldownTimer = 0;
+    float signVal;
+
     Vector2 playerInput;
     Vector2 additivePos;
-    Vector2 offSetVect = new Vector2(-0.5f, -0.5f);
+    Vector2 offset = new Vector2(-0.5f, -0.5f);
     Rigidbody2D rb;
-    float horizontalCooldownTimer = 0;
-
 
 
     void Start () {
         playerInput = Vector2.zero;
         rb = GetComponent<Rigidbody2D>();
+        signVal = 0;
+        //rb.angularVelocity = 1;
 	}
 	
 	void Update () {
-        Debug.Log(horizontalCooldownTimer);
         if (horizontalCooldownTimer < Time.timeSinceLevelLoad)
         {
             playerInput.x = Input.GetKeyDown(KeyCode.D) ? 1 : Input.GetKeyDown(KeyCode.A) ? -1 : 0;
@@ -34,7 +36,7 @@ public class PlayerMovement : MonoBehaviour {
         {
             playerInput.x = 0;
         }
-        playerInput.y = Mathf.Clamp(Input.GetAxis("Vertical"), 0, 1);
+        playerInput.y = Input.GetAxis("Vertical");
     }
 
     private void FixedUpdate()
@@ -42,7 +44,14 @@ public class PlayerMovement : MonoBehaviour {
         additivePos = new Vector2(playerInput.x, 0);
 
         transform.Translate(additivePos * horizontalSpeed * Time.deltaTime);
-        rb.AddForceAtPosition(new Vector2(0, playerInput.y * forceAmount), offSetVect, ForceMode2D.Force);
-        //rb.AddForce(new Vector2(0, playerInput.y * forceAmount));
+        if (playerInput.y != 0)
+        {
+            signVal = Mathf.Sign(playerInput.y);
+            offset = new Vector2(transform.localPosition.x + (signVal * -0.5f), transform.localPosition.y - 0.5f);
+            Debug.Log(offset.x);
+            //Debug.
+            //offset = new Vector2(transform.localPosition.x - 0.5f, transform.localPosition.y + 0.5f);
+            rb.AddForceAtPosition(new Vector2(0, 1 * forceAmount), offset, ForceMode2D.Force);
+        }
     }
 }
