@@ -41,16 +41,18 @@ public class PlayerMovement : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        additivePos = new Vector2(playerInput.x, 0);
+        additivePos = Vector2.zero;
 
-        transform.Translate(additivePos * horizontalSpeed * Time.deltaTime);
+        if(playerInput.x != 0)
+        {
+            additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x);
+        }
+
+        transform.position += (Vector3)(additivePos * horizontalSpeed * Time.deltaTime);
         if (playerInput.y != 0)
         {
             signVal = Mathf.Sign(playerInput.y);
             offset = new Vector2(transform.localPosition.x + (signVal * -0.5f), transform.localPosition.y - 0.5f);
-            Debug.Log(offset.x);
-            //Debug.
-            //offset = new Vector2(transform.localPosition.x - 0.5f, transform.localPosition.y + 0.5f);
             rb.AddForceAtPosition(new Vector2(0, 1 * forceAmount), offset, ForceMode2D.Force);
         }
     }

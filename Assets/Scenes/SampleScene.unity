@@ -223,11 +223,11 @@ Prefab:
     m_Modifications:
     - target: {fileID: 4731871534242046, guid: df4a7af304fcb824c8169f326a166e8e, type: 2}
       propertyPath: m_LocalPosition.x
-      value: 0.41699475
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4731871534242046, guid: df4a7af304fcb824c8169f326a166e8e, type: 2}
       propertyPath: m_LocalPosition.y
-      value: -4.56
+      value: -4.524
       objectReference: {fileID: 0}
     - target: {fileID: 4731871534242046, guid: df4a7af304fcb824c8169f326a166e8e, type: 2}
       propertyPath: m_LocalPosition.z
@@ -284,17 +284,17 @@ Prefab:
     - target: {fileID: 114691282118405144, guid: df4a7af304fcb824c8169f326a166e8e,
         type: 2}
       propertyPath: horizontalSpeed
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 114691282118405144, guid: df4a7af304fcb824c8169f326a166e8e,
-        type: 2}
-      propertyPath: _horizontalCooldownAmount
       value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 114691282118405144, guid: df4a7af304fcb824c8169f326a166e8e,
         type: 2}
+      propertyPath: _horizontalCooldownAmount
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 114691282118405144, guid: df4a7af304fcb824c8169f326a166e8e,
+        type: 2}
       propertyPath: forceAmount
-      value: 8
+      value: 10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: df4a7af304fcb824c8169f326a166e8e, type: 2}
