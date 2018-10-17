@@ -12,7 +12,7 @@ public class PlayerMovement : MonoBehaviour {
     float signVal;
 
     Vector2 playerInput;
-    Vector2 additivePos;
+    Vector3 additivePos;
     Vector2 offset = new Vector2(-0.5f, -0.5f);
     Rigidbody2D rb;
 
@@ -21,7 +21,6 @@ public class PlayerMovement : MonoBehaviour {
         playerInput = Vector2.zero;
         rb = GetComponent<Rigidbody2D>();
         signVal = 0;
-        //rb.angularVelocity = 1;
 	}
 	
 	void Update () {
@@ -41,19 +40,22 @@ public class PlayerMovement : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        additivePos = Vector2.zero;
+        additivePos = Vector3.zero;
 
         if(playerInput.x != 0)
         {
             additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x);
         }
 
-        transform.position += (Vector3)(additivePos * horizontalSpeed * Time.deltaTime);
+        transform.position += (additivePos * horizontalSpeed * Time.deltaTime);
         if (playerInput.y != 0)
         {
             signVal = Mathf.Sign(playerInput.y);
             offset = new Vector2(transform.localPosition.x + (signVal * -0.5f), transform.localPosition.y - 0.5f);
-            rb.AddForceAtPosition(new Vector2(0, 1 * forceAmount), offset, ForceMode2D.Force);
+            rb.AddTorque(forceAmount * -signVal);
         }
+        //rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, 0, 50);
+
+        Debug.Log(rb.angularVelocity);
     }
 }
