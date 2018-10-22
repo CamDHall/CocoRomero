@@ -5,6 +5,7 @@ using System.Linq;
 
 public class PlayerMovement : MonoBehaviour {
 
+    public Vector2 anchorOffset;
     public float horizontalSpeed;
     public float _horizontalCooldownAmount;
     public float forceAmount;
@@ -14,12 +15,11 @@ public class PlayerMovement : MonoBehaviour {
     float horizontalCooldownTimer = 0;
     float signVal;
     float breakDelayTimer;
-    int anchorIndex;
+    int hitIndex;
 
     Vector2 playerInput;
     Vector3 additivePos;
     Rigidbody2D rb;
-    Transform anchorPiece;
     List<Transform> pieces;
 
 
@@ -29,6 +29,9 @@ public class PlayerMovement : MonoBehaviour {
         pieces = GetComponentsInChildren<Transform>().ToList();
         pieces.Remove(transform);
         signVal = 0;
+
+        pieces[0].position = (Vector2)pieces[1].position - anchorOffset;
+        pieces[pieces.Count - 1].position = (Vector2)pieces[pieces.Count - 2].position + anchorOffset;
 	}
 	
 	void Update () {
@@ -44,15 +47,6 @@ public class PlayerMovement : MonoBehaviour {
             playerInput.x = 0;
         }
         playerInput.y = Input.GetAxis("Vertical");
-        if(playerInput.y < 0)
-        {
-            anchorIndex = 0;
-        } else
-        {
-            anchorIndex = pieces.Count - 1;
-        }
-
-        anchorPiece = pieces[anchorIndex];
     }
 
     private void FixedUpdate()
@@ -72,38 +66,38 @@ public class PlayerMovement : MonoBehaviour {
         }
 
         rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVel, maxAngularVel);
+
+        int temp = pieces.Count - 1;
+        if (rb.angularVelocity < 0) temp = 0;
     }
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        if(breakDelayTimer < Time.timeSinceLevelLoad && Mathf.Abs(rb.angularVelocity) > maxImpactVel)
+        if (rb.angularVelocity < maxImpactVel)
         {
-            //ContactPoint2D[] hits = col.contacts;
-            //foreach(ContactPoint2D contact in hits)
-            //{
-            //    if(contact.otherCollider.transform.name != anchorPiece.name)
-            //    {
-            //        print("break this one: " + contact.otherCollider.transform.name);
-            //    }
-            //}
-            Transform hit = col.GetContact(0).otherCollider.transform;
-            int index = pieces.IndexOf(hit);
-            if(index > 0 && pieces[index -1].position.y > hit.transform.position.y ||
-                index < pieces.Count - 1 && index > 0 && pieces[index + 1].position.y > hit.transform.position.y)
+            if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
-                return;
+                CircleCollider2D circleCol = (CircleCollider2D)col.otherCollider;
+                if (circleCol.radius == 0.4f)
+                {
+                    Transform hit = col.otherCollider.transform;
+                    Transform breakingPoint;
+                    hitIndex = pieces.IndexOf(hit);
+
+                    if (hitIndex != 0)
+                    {
+                        breakingPoint = pieces[hitIndex - 1];
+                        hit.position = (Vector2)pieces[hitIndex - 2].position - anchorOffset;
+                    } else
+                    {
+                        breakingPoint = pieces[hitIndex + 1];
+                        hit.position = (Vector2)pieces[hitIndex + 2].position + anchorOffset;
+                    }
+
+                    pieces.Remove(breakingPoint);
+                    Destroy(breakingPoint.gameObject);
+                }
             }
-
-            if(index == 0 && pieces[index + 1].position.y < hit.position.y)
-            {
-                return;
-            }
-
-            Debug.Log(hit.name);
-
-            pieces.Remove(hit);
-            Destroy(hit.gameObject);
-            breakDelayTimer = Time.timeSinceLevelLoad + 3;
         }
     }
 }
