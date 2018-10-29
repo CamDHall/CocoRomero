@@ -5,12 +5,14 @@ using System.Linq;
 
 public class PlayerMovement : MonoBehaviour {
 
+    public static PlayerMovement Instance;
+
     public Vector3 anchorOffset;
     public float horizontalSpeed;
-    public float _horizontalCooldownAmount;
+    public float moveSpeed;
     public float forceAmount;
     public int maxAngularVel;
-    public int maxImpactVel;
+    public float maxImpactVel;
 
     float horizontalCooldownTimer = 0;
     float signVal;
@@ -20,14 +22,19 @@ public class PlayerMovement : MonoBehaviour {
     Vector2 playerInput;
     Vector3 additivePos;
     Rigidbody2D rb;
-    List<Transform> pieces;
+    public List<Transform> pieces;
 
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     void Start () {
         playerInput = Vector2.zero;
         rb = GetComponent<Rigidbody2D>();
         pieces = GetComponentsInChildren<Transform>().ToList();
         pieces.Remove(transform);
+
         signVal = 0;
 
         pieces[0].position = pieces[1].position - anchorOffset;
@@ -35,17 +42,7 @@ public class PlayerMovement : MonoBehaviour {
 	}
 	
 	void Update () {
-        if (horizontalCooldownTimer < Time.timeSinceLevelLoad)
-        {
-            playerInput.x = Input.GetKeyDown(KeyCode.D) ? 1 : Input.GetKeyDown(KeyCode.A) ? -1 : 0;
-            if (playerInput.x != 0)
-            {
-                horizontalCooldownTimer = Time.timeSinceLevelLoad + (_horizontalCooldownAmount * Time.deltaTime);
-            }
-        } else
-        {
-            playerInput.x = 0;
-        }
+        playerInput.x = Input.GetAxis("Horizontal");
         playerInput.y = Input.GetAxis("Vertical");
     }
 
@@ -61,19 +58,18 @@ public class PlayerMovement : MonoBehaviour {
 
         if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.25f)
         {
-            additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x);
+            additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
             transform.position += (additivePos * horizontalSpeed * Time.deltaTime);
         }
 
         rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVel, maxAngularVel);
-
-        int temp = pieces.Count - 1;
-        if (rb.angularVelocity < 0) temp = 0;
     }
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        if (Mathf.Abs(rb.angularVelocity) > maxImpactVel && breakDelayTimer < Time.timeSinceLevelLoad)
+        if (pieces.Count == 1) return;
+
+        if (Mathf.Abs(col.relativeVelocity.x) > maxImpactVel && Mathf.Abs(col.relativeVelocity.y) > maxImpactVel && breakDelayTimer < Time.timeSinceLevelLoad)
         {
             /// First, check if ends
             /// Seconds, handle between hits
@@ -85,8 +81,7 @@ public class PlayerMovement : MonoBehaviour {
             if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
                 CircleCollider2D circleCol = (CircleCollider2D)col.otherCollider;
-                if (circleCol.radius == 0.4f)
-                {
+                print(col.otherCollider.gameObject.name + " VEL: " + col.relativeVelocity);
                     if (hitIndex != 0)
                     {
                         breakingPoint = pieces[hitIndex - 1];
@@ -101,23 +96,31 @@ public class PlayerMovement : MonoBehaviour {
                     Destroy(breakingPoint.gameObject);
 
                     breakDelayTimer = Time.timeSinceLevelLoad + 3;
-                }
             }
             else
             {
                 List<Transform> toBeRemoved = new List<Transform>();
+                pieces[0].localPosition = new Vector3(pieces[1].localPosition.x - anchorOffset.x, pieces[hitIndex + 1].localPosition.y, 0);
+                pieces[0].localPosition = new Vector3(pieces[hitIndex + 1].localPosition.x - anchorOffset.x, pieces[hitIndex + 1].localPosition.y, 0);
 
+                pieces[0].gameObject.SetActive(false);
+                pieces[pieces.Count - 1].gameObject.SetActive(false);
                 if (hitIndex < pieces.Count / 2)
                 {
                     for(int i = 0; i <= hitIndex; i++)
                     {
                         if (pieces[i].tag == "Ball")
                         {
-                            Vector3 currentPos = pieces[hitIndex + 1].localPosition;
-                            pieces[i].localPosition = new Vector3(currentPos.x - anchorOffset.x, 0, 0);
+                            //Vector3 currentPos = pieces[hitIndex + 1].localPosition;
+                            //pieces[i].localPosition = new Vector3(currentPos.x - anchorOffset.x, 0, 0);
                             continue;
                         }
                         toBeRemoved.Add(pieces[i]);
+
+                        //pieces[0].GetComponent<Collider2D>().enabled = true;
+                        //pieces[pieces.Count - 1].GetComponent<Collider2D>().enabled = true;
+                        pieces[0].gameObject.SetActive(true);
+                        pieces[pieces.Count - 1].gameObject.SetActive(true);
                     }
                 } else
                 {
@@ -126,7 +129,7 @@ public class PlayerMovement : MonoBehaviour {
                         if (pieces[i].tag == "Ball")
                         {
                             Vector3 currentPos = pieces[hitIndex - 1].position;
-                            pieces[i].position = new Vector3(currentPos.x - anchorOffset.x, currentPos.y, 0);
+                            pieces[i].localPosition = new Vector3(currentPos.x + anchorOffset.x, currentPos.y, 0);
                             continue;
                         }
 
@@ -134,14 +137,40 @@ public class PlayerMovement : MonoBehaviour {
                     } 
                 }
 
-                foreach (Transform piece in toBeRemoved)
-                {
-                    pieces.Remove(piece);
-                    Destroy(piece.gameObject);
-                }
+                BreakOff(toBeRemoved);
 
                 breakDelayTimer = Time.timeSinceLevelLoad + 3;
             }
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D coll)
+    {
+        if(coll.tag == "Floor")
+        {
+            LevelManager.Instance.ChangeRoom(coll.transform);
+        }
+    }
+
+    void BreakOff(List<Transform> orphans)
+    {
+        int newSize = pieces.Count - orphans.Count;
+
+        if(newSize == 3)
+        {
+            Transform anchor1 = pieces[0];
+            Transform anchor2 = pieces[pieces.Count - 1];
+            orphans.Add(anchor1);
+            orphans.Add(anchor2);
+
+            Destroy(anchor1.gameObject);
+            Destroy(anchor2.gameObject);
+        }
+        foreach(Transform orphan in orphans)
+        {
+            orphan.parent = null;
+            orphan.gameObject.AddComponent<Rigidbody2D>();
+            pieces.Remove(orphan);
         }
     }
 }
