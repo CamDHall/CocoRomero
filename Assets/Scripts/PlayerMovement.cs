@@ -37,8 +37,8 @@ public class PlayerMovement : MonoBehaviour {
 
         signVal = 0;
 
-        pieces[0].position = pieces[1].position - anchorOffset;
-        pieces[pieces.Count - 1].position = pieces[pieces.Count - 2].position + anchorOffset;
+        pieces[0].localPosition = pieces[1].localPosition - anchorOffset;
+        pieces[pieces.Count - 1].localPosition = pieces[pieces.Count - 2].localPosition + anchorOffset;
 	}
 	
 	void Update () {
@@ -81,15 +81,14 @@ public class PlayerMovement : MonoBehaviour {
             if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
                 CircleCollider2D circleCol = (CircleCollider2D)col.otherCollider;
-                print(col.otherCollider.gameObject.name + " VEL: " + col.relativeVelocity);
                     if (hitIndex != 0)
                     {
                         breakingPoint = pieces[hitIndex - 1];
-                        hit.position = pieces[hitIndex - 2].position - anchorOffset;
+                        hit.position = pieces[hitIndex - 2].localPosition - anchorOffset;
                     } else
                     {
-                        breakingPoint = pieces[hitIndex + 1];
-                        hit.position = pieces[hitIndex + 2].position + anchorOffset;
+                        breakingPoint = pieces[1];
+                        hit.position = pieces[2].localPosition + anchorOffset;
                     }
 
                     pieces.Remove(breakingPoint);
@@ -100,8 +99,6 @@ public class PlayerMovement : MonoBehaviour {
             else
             {
                 List<Transform> toBeRemoved = new List<Transform>();
-                pieces[0].localPosition = new Vector3(pieces[1].localPosition.x - anchorOffset.x, pieces[hitIndex + 1].localPosition.y, 0);
-                pieces[0].localPosition = new Vector3(pieces[hitIndex + 1].localPosition.x - anchorOffset.x, pieces[hitIndex + 1].localPosition.y, 0);
 
                 pieces[0].gameObject.SetActive(false);
                 pieces[pieces.Count - 1].gameObject.SetActive(false);
@@ -111,16 +108,12 @@ public class PlayerMovement : MonoBehaviour {
                     {
                         if (pieces[i].tag == "Ball")
                         {
-                            //Vector3 currentPos = pieces[hitIndex + 1].localPosition;
-                            //pieces[i].localPosition = new Vector3(currentPos.x - anchorOffset.x, 0, 0);
+                            Vector3 currentPos = pieces[hitIndex + 1].localPosition;
+                            print(pieces[hitIndex + 1]);
+                            pieces[i].localPosition = new Vector3(currentPos.x - anchorOffset.x, currentPos.y, 0);
                             continue;
                         }
                         toBeRemoved.Add(pieces[i]);
-
-                        //pieces[0].GetComponent<Collider2D>().enabled = true;
-                        //pieces[pieces.Count - 1].GetComponent<Collider2D>().enabled = true;
-                        pieces[0].gameObject.SetActive(true);
-                        pieces[pieces.Count - 1].gameObject.SetActive(true);
                     }
                 } else
                 {
@@ -128,7 +121,7 @@ public class PlayerMovement : MonoBehaviour {
                     {
                         if (pieces[i].tag == "Ball")
                         {
-                            Vector3 currentPos = pieces[hitIndex - 1].position;
+                            Vector3 currentPos = pieces[hitIndex - 1].localPosition;
                             pieces[i].localPosition = new Vector3(currentPos.x + anchorOffset.x, currentPos.y, 0);
                             continue;
                         }
@@ -136,6 +129,9 @@ public class PlayerMovement : MonoBehaviour {
                         toBeRemoved.Add(pieces[i]);
                     } 
                 }
+
+                pieces[0].gameObject.SetActive(true);
+                pieces[pieces.Count - 1].gameObject.SetActive(true);
 
                 BreakOff(toBeRemoved);
 
