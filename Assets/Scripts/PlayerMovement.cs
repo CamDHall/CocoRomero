@@ -17,6 +17,8 @@ public class PlayerMovement : MonoBehaviour {
     float horizontalCooldownTimer = 0;
     float signVal;
     float breakDelayTimer;
+    float forceChangeIncrement;
+
     int hitIndex;
 
     Vector2 playerInput;
@@ -39,6 +41,8 @@ public class PlayerMovement : MonoBehaviour {
 
         pieces[0].localPosition = pieces[1].localPosition - anchorOffset;
         pieces[pieces.Count - 1].localPosition = pieces[pieces.Count - 2].localPosition + anchorOffset;
+
+        forceChangeIncrement = (forceAmount / pieces.Count) * 0.7f;
 	}
 	
 	void Update () {
@@ -71,6 +75,17 @@ public class PlayerMovement : MonoBehaviour {
 
         if (Mathf.Abs(col.relativeVelocity.x) > maxImpactVel && Mathf.Abs(col.relativeVelocity.y) > maxImpactVel && breakDelayTimer < Time.timeSinceLevelLoad)
         {
+            if (pieces.Count == 3)
+            {
+                Destroy(pieces[0].gameObject);
+                Destroy(pieces[2].gameObject);
+
+                pieces.Remove(pieces[0]);
+                pieces.Remove(pieces[1]);
+
+                return;
+            }
+
             /// First, check if ends
             /// Seconds, handle between hits
             /// If it's not circle collider, has to be between
@@ -80,21 +95,23 @@ public class PlayerMovement : MonoBehaviour {
 
             if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
+                print(col.otherCollider.gameObject.name + "  VEL: " + col.relativeVelocity);
                 CircleCollider2D circleCol = (CircleCollider2D)col.otherCollider;
                     if (hitIndex != 0)
                     {
                         breakingPoint = pieces[hitIndex - 1];
-                        hit.position = pieces[hitIndex - 2].localPosition - anchorOffset;
+                        hit.localPosition = pieces[hitIndex - 2].localPosition - anchorOffset;
                     } else
                     {
                         breakingPoint = pieces[1];
-                        hit.position = pieces[2].localPosition + anchorOffset;
+                        hit.localPosition = pieces[2].localPosition - anchorOffset;
                     }
 
                     pieces.Remove(breakingPoint);
                     Destroy(breakingPoint.gameObject);
 
-                    breakDelayTimer = Time.timeSinceLevelLoad + 3;
+                    forceAmount -= forceChangeIncrement;
+                    breakDelayTimer = Time.timeSinceLevelLoad + 2;
             }
             else
             {
@@ -168,5 +185,7 @@ public class PlayerMovement : MonoBehaviour {
             orphan.gameObject.AddComponent<Rigidbody2D>();
             pieces.Remove(orphan);
         }
+
+        forceAmount -= (forceChangeIncrement * orphans.Count);
     }
 }
