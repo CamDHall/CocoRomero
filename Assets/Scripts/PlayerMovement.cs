@@ -83,6 +83,7 @@ public class PlayerMovement : MonoBehaviour {
                 pieces.Remove(pieces[0]);
                 pieces.Remove(pieces[1]);
 
+                breakDelayTimer = Time.timeSinceLevelLoad + 2;
                 return;
             }
 
@@ -90,70 +91,50 @@ public class PlayerMovement : MonoBehaviour {
             /// Seconds, handle between hits
             /// If it's not circle collider, has to be between
             Transform hit = col.otherCollider.transform;
-            Transform breakingPoint;
             hitIndex = pieces.IndexOf(hit);
 
             if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
-                print(col.otherCollider.gameObject.name + "  VEL: " + col.relativeVelocity);
-                CircleCollider2D circleCol = (CircleCollider2D)col.otherCollider;
-                    if (hitIndex != 0)
-                    {
-                        breakingPoint = pieces[hitIndex - 1];
-                        hit.localPosition = pieces[hitIndex - 2].localPosition - anchorOffset;
-                    } else
-                    {
-                        breakingPoint = pieces[1];
-                        hit.localPosition = pieces[2].localPosition - anchorOffset;
-                    }
+                List<Transform> toBeRemoved = new List<Transform>(pieces);
 
-                    pieces.Remove(breakingPoint);
-                    Destroy(breakingPoint.gameObject);
-
-                    forceAmount -= forceChangeIncrement;
-                    breakDelayTimer = Time.timeSinceLevelLoad + 2;
-            }
-            else
-            {
-                List<Transform> toBeRemoved = new List<Transform>();
-
-                pieces[0].gameObject.SetActive(false);
-                pieces[pieces.Count - 1].gameObject.SetActive(false);
-                if (hitIndex < pieces.Count / 2)
+                if(hitIndex == 0)
                 {
-                    for(int i = 0; i <= hitIndex; i++)
-                    {
-                        if (pieces[i].tag == "Ball")
-                        {
-                            Vector3 currentPos = pieces[hitIndex + 1].localPosition;
-                            print(pieces[hitIndex + 1]);
-                            pieces[i].localPosition = new Vector3(currentPos.x - anchorOffset.x, currentPos.y, 0);
-                            continue;
-                        }
-                        toBeRemoved.Add(pieces[i]);
-                    }
+                    toBeRemoved.RemoveAt(hitIndex + 1);
                 } else
                 {
-                    for(int i = hitIndex; i < pieces.Count; i++)
-                    {
-                        if (pieces[i].tag == "Ball")
-                        {
-                            Vector3 currentPos = pieces[hitIndex - 1].localPosition;
-                            pieces[i].localPosition = new Vector3(currentPos.x + anchorOffset.x, currentPos.y, 0);
-                            continue;
-                        }
-
-                        toBeRemoved.Add(pieces[i]);
-                    } 
+                    toBeRemoved.RemoveAt(hitIndex -1);
                 }
 
-                pieces[0].gameObject.SetActive(true);
-                pieces[pieces.Count - 1].gameObject.SetActive(true);
+                print(pieces == toBeRemoved);
 
                 BreakOff(toBeRemoved);
 
-                breakDelayTimer = Time.timeSinceLevelLoad + 3;
+                forceAmount -= forceChangeIncrement;
+                breakDelayTimer = Time.timeSinceLevelLoad + 2;
             }
+            else
+            {
+                if (transform.rotation.z > 0)
+                {
+                    List<Transform> broken = pieces.GetRange(1, hitIndex - 1);
+                    BreakOff(broken);
+                }
+                else
+                {
+                    int len = pieces.Count - 1 - hitIndex;
+                    if (len == hitIndex)
+                    {
+                        List<Transform> broken = pieces.GetRange(hitIndex + 1, len);
+                        BreakOff(broken);
+                    } else
+                    {
+                        List<Transform> broken = pieces.GetRange(hitIndex + 1, (pieces.Count - 1) - hitIndex);
+                        BreakOff(broken);
+                    }
+                }
+            }
+
+            breakDelayTimer = Time.timeSinceLevelLoad + 2;
         }
     }
 
@@ -167,25 +148,49 @@ public class PlayerMovement : MonoBehaviour {
 
     void BreakOff(List<Transform> orphans)
     {
-        int newSize = pieces.Count - orphans.Count;
-
-        if(newSize == 3)
+        foreach (Transform orphan in orphans)
         {
-            Transform anchor1 = pieces[0];
-            Transform anchor2 = pieces[pieces.Count - 1];
-            orphans.Add(anchor1);
-            orphans.Add(anchor2);
+            //print(orphan.name);
+            if (orphan.tag == "Ball")
+            {
+                pieces.Remove(orphan);
+                Destroy(orphan.gameObject);
+                continue;
+            }
 
-            Destroy(anchor1.gameObject);
-            Destroy(anchor2.gameObject);
-        }
-        foreach(Transform orphan in orphans)
-        {
             orphan.parent = null;
             orphan.gameObject.AddComponent<Rigidbody2D>();
             pieces.Remove(orphan);
         }
 
         forceAmount -= (forceChangeIncrement * orphans.Count);
+
+        // Anchor fixes
+        if (pieces.Count == 3)
+        {
+            print(pieces[0].name);
+            Destroy(pieces[0].gameObject);
+            Destroy(pieces[2].gameObject);
+
+            pieces.Remove(pieces[0]);
+            pieces.Remove(pieces[1]);
+        } else if(pieces.Count == 2)
+        {
+            if(pieces[0].tag == "Ball")
+            {
+                Destroy(pieces[0].gameObject);
+                pieces.RemoveAt(0);
+            } else
+            {
+                Destroy(pieces[1].gameObject);
+                pieces.RemoveAt(1);
+            }
+        }
+        
+        if(pieces.Count > 2)
+        {
+            pieces[0].localPosition = pieces[1].localPosition - anchorOffset;
+            pieces[pieces.Count - 1].localPosition = pieces[pieces.Count - 2].localPosition + anchorOffset;
+        }
     }
 }
