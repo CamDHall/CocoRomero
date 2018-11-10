@@ -73,6 +73,11 @@ public class PlayerMovement : MonoBehaviour {
     {
         if (pieces.Count == 1) return;
 
+        if (col.transform.tag == "Blade") {
+            BreakOff(new List<Transform> { col.otherCollider.transform });
+            return;
+        }
+
         if (Mathf.Abs(col.relativeVelocity.x) > maxImpactVel && Mathf.Abs(col.relativeVelocity.y) > maxImpactVel && breakDelayTimer < Time.timeSinceLevelLoad)
         {
             if (pieces.Count == 3)
@@ -104,8 +109,6 @@ public class PlayerMovement : MonoBehaviour {
                 {
                     toBeRemoved.RemoveAt(hitIndex -1);
                 }
-
-                print(pieces == toBeRemoved);
 
                 BreakOff(toBeRemoved);
 
@@ -168,7 +171,6 @@ public class PlayerMovement : MonoBehaviour {
         // Anchor fixes
         if (pieces.Count == 3)
         {
-            print(pieces[0].name);
             Destroy(pieces[0].gameObject);
             Destroy(pieces[2].gameObject);
 
