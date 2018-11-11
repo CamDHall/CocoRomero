@@ -98,6 +98,16 @@ public class PlayerMovement : MonoBehaviour {
             Transform hit = col.otherCollider.transform;
             hitIndex = pieces.IndexOf(hit);
 
+            bool end1Less = pieces[0].position.y < col.transform.position.y;
+            bool end2Less = pieces[pieces.Count - 1].position.y < col.transform.position.y;
+
+            if ((end1Less && end2Less) || (!end1Less && !end2Less)) {
+                BreakOff(new List<Transform>() { hit });
+                breakDelayTimer = Time.timeSinceLevelLoad + 2;
+                print("HERE");
+                return;
+            }
+
             if (col.otherCollider.GetType() == typeof(CircleCollider2D))
             {
                 List<Transform> toBeRemoved = new List<Transform>(pieces);

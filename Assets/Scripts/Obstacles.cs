@@ -12,10 +12,12 @@ public class Obstacles : MonoBehaviour {
 
     Vector3 horizontalDir;
     Vector3 verticalDir;
+    Rigidbody2D rb;
 
 	public void Start () {
         horizontalDir = transform.right;
         verticalDir = transform.up;
+        rb = GetComponent<Rigidbody2D>();
 	}
 	
 	void Update () {
@@ -29,7 +31,8 @@ public class Obstacles : MonoBehaviour {
 
     public void MoveHoritonzal()
     {
-        transform.position += horizontalDir * moveSpeed * Time.deltaTime;
+        rb.MovePosition(rb.position + (Vector2)(horizontalDir * moveSpeed * Time.deltaTime));
+//        transform.position += horizontalDir * moveSpeed * Time.deltaTime;
     }
 
     public void MoveVertical()
