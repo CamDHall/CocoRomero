@@ -22,7 +22,6 @@ public class Platform : Obstacles {
         }
 	}
 	
-	// Update is called once per frame
 	void FixedUpdate () {
         platformMove();
 	}

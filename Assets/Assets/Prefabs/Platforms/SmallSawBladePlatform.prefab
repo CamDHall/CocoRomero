@@ -21,6 +21,7 @@ GameObject:
   - component: {fileID: 4464126344608242}
   - component: {fileID: 212105082153400978}
   - component: {fileID: 114777977588247092}
+  - component: {fileID: 50876238683307426}
   m_Layer: 0
   m_Name: SmallSawBladePlatform
   m_TagString: Untagged
@@ -77,7 +78,7 @@ Transform:
   - {fileID: 4657200551382830}
   m_Father: {fileID: 4464126344608242}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 30}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -18}
 --- !u!4 &4464126344608242
 Transform:
   m_ObjectHideFlags: 1
@@ -85,7 +86,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1569601247320214}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.57, z: 0}
+  m_LocalPosition: {x: -3.92, y: 4.97, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 4006981905018198}
@@ -105,6 +106,26 @@ Transform:
   m_Father: {fileID: 4006981905018198}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+--- !u!50 &50876238683307426
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1569601247320214}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
 --- !u!58 &58299097295875874
 CircleCollider2D:
   m_ObjectHideFlags: 1
@@ -154,7 +175,7 @@ Animator:
   m_GameObject: {fileID: 1603290669975686}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 4cce3bc5bdf3a08488cfc7a71df3a33b, type: 2}
+  m_Controller: {fileID: 9100000, guid: ad5c161e9f953f347bb1bb8bdf18263c, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

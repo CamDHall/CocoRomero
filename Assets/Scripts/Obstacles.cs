@@ -32,7 +32,6 @@ public class Obstacles : MonoBehaviour {
     public void MoveHoritonzal()
     {
         rb.MovePosition(rb.position + (Vector2)(horizontalDir * moveSpeed * Time.deltaTime));
-//        transform.position += horizontalDir * moveSpeed * Time.deltaTime;
     }
 
     public void MoveVertical()

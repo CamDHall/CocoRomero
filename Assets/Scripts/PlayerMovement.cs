@@ -7,7 +7,6 @@ public class PlayerMovement : MonoBehaviour {
 
     public static PlayerMovement Instance;
 
-    public Vector3 anchorOffset;
     public float horizontalSpeed;
     public float moveSpeed;
     public float forceAmount;
@@ -39,10 +38,7 @@ public class PlayerMovement : MonoBehaviour {
 
         signVal = 0;
 
-        pieces[0].localPosition = pieces[1].localPosition - anchorOffset;
-        pieces[pieces.Count - 1].localPosition = pieces[pieces.Count - 2].localPosition + anchorOffset;
-
-        forceChangeIncrement = (forceAmount / pieces.Count) * 0.7f;
+        forceChangeIncrement = (forceAmount / pieces.Count) * 0.85f;
 	}
 	
 	void Update () {
@@ -92,9 +88,6 @@ public class PlayerMovement : MonoBehaviour {
                 return;
             }
 
-            /// First, check if ends
-            /// Seconds, handle between hits
-            /// If it's not circle collider, has to be between
             Transform hit = col.otherCollider.transform;
             hitIndex = pieces.IndexOf(hit);
 
@@ -104,46 +97,25 @@ public class PlayerMovement : MonoBehaviour {
             if ((end1Less && end2Less) || (!end1Less && !end2Less)) {
                 BreakOff(new List<Transform>() { hit });
                 breakDelayTimer = Time.timeSinceLevelLoad + 2;
-                print("HERE");
                 return;
             }
 
-            if (col.otherCollider.GetType() == typeof(CircleCollider2D))
+            if (transform.rotation.z > 0)
             {
-                List<Transform> toBeRemoved = new List<Transform>(pieces);
-
-                if(hitIndex == 0)
-                {
-                    toBeRemoved.RemoveAt(hitIndex + 1);
-                } else
-                {
-                    toBeRemoved.RemoveAt(hitIndex -1);
-                }
-
-                BreakOff(toBeRemoved);
-
-                forceAmount -= forceChangeIncrement;
-                breakDelayTimer = Time.timeSinceLevelLoad + 2;
+                List<Transform> broken = pieces.GetRange(1, hitIndex - 1);
+                BreakOff(broken);
             }
             else
             {
-                if (transform.rotation.z > 0)
+                int len = pieces.Count - 1 - hitIndex;
+                if (len == hitIndex)
                 {
-                    List<Transform> broken = pieces.GetRange(1, hitIndex - 1);
+                    List<Transform> broken = pieces.GetRange(hitIndex + 1, len);
                     BreakOff(broken);
-                }
-                else
+                } else
                 {
-                    int len = pieces.Count - 1 - hitIndex;
-                    if (len == hitIndex)
-                    {
-                        List<Transform> broken = pieces.GetRange(hitIndex + 1, len);
-                        BreakOff(broken);
-                    } else
-                    {
-                        List<Transform> broken = pieces.GetRange(hitIndex + 1, (pieces.Count - 1) - hitIndex);
-                        BreakOff(broken);
-                    }
+                    List<Transform> broken = pieces.GetRange(hitIndex + 1, (pieces.Count - 1) - hitIndex);
+                    BreakOff(broken);
                 }
             }
 
@@ -197,12 +169,6 @@ public class PlayerMovement : MonoBehaviour {
                 Destroy(pieces[1].gameObject);
                 pieces.RemoveAt(1);
             }
-        }
-        
-        if(pieces.Count > 2)
-        {
-            pieces[0].localPosition = pieces[1].localPosition - anchorOffset;
-            pieces[pieces.Count - 1].localPosition = pieces[pieces.Count - 2].localPosition + anchorOffset;
         }
     }
 }
