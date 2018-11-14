@@ -24,10 +24,12 @@ public class PlayerMovement : MonoBehaviour {
     Vector3 additivePos;
     Rigidbody2D rb;
     public List<Transform> pieces;
+    List<ParticleCollisionEvent> hitEvents;
 
     private void Awake()
     {
         Instance = this;
+        hitEvents = new List<ParticleCollisionEvent>();
     }
 
     void Start () {
@@ -170,5 +172,25 @@ public class PlayerMovement : MonoBehaviour {
                 pieces.RemoveAt(1);
             }
         }
+    }
+
+    private void OnParticleCollision(GameObject other)
+    {
+        ParticleSystem ps = other.GetComponent<ParticleSystem>();
+        int hitNum = ps.GetCollisionEvents(gameObject, hitEvents);
+
+        for (int i = 0; i < hitNum; i++)
+        {
+            Vector3 pos = hitEvents[i].intersection;
+
+            Collider2D[] hits = Physics2D.OverlapBoxAll(pos, Vector2.one, 0);
+
+            List<Transform> toBeMelted = new List<Transform>();
+
+            foreach (Collider2D hit in hits) toBeMelted.Add(hit.transform);
+
+            BreakOff(toBeMelted);
+        }
+
     }
 }
