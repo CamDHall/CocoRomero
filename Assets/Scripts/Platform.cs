@@ -5,9 +5,7 @@ using UnityEngine;
 public class Platform : Obstacles {
 
     public ObstacleType obstacleType;
-
     delegate void Move();
-
     Move platformMove;
 
 	new void Start () {

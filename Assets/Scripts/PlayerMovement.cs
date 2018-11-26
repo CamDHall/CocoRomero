@@ -17,11 +17,14 @@ public class PlayerMovement : MonoBehaviour {
     float signVal;
     float breakDelayTimer;
     float forceChangeIncrement;
+    float prevPos;
 
     int hitIndex;
 
+    Vector2 additivePos;
     Vector2 playerInput;
-    Vector3 additivePos;
+    bool onRamp;
+
     Rigidbody2D rb;
     public List<Transform> pieces;
     List<ParticleCollisionEvent> hitEvents;
@@ -39,8 +42,8 @@ public class PlayerMovement : MonoBehaviour {
         pieces.Remove(transform);
 
         signVal = 0;
-
         forceChangeIncrement = (forceAmount / pieces.Count) * 0.85f;
+        prevPos = 0;
 	}
 	
 	void Update () {
@@ -50,29 +53,78 @@ public class PlayerMovement : MonoBehaviour {
 
     private void FixedUpdate()
     {
-        additivePos = Vector3.zero;
+        additivePos = Vector2.zero;
 
         if (playerInput.y != 0)
         {
             signVal = Mathf.Sign(playerInput.y);
-            rb.AddTorque(forceAmount * -signVal);
+            float currentForceAmount = Time.deltaTime* forceAmount *-signVal; 
+
+            if(onRamp)
+            {
+                currentForceAmount++;
+            }
+
+            rb.AddTorque(currentForceAmount, ForceMode2D.Impulse);
         }
 
-        if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.25f)
+        if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.5f)
         {
             additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
-            transform.position += (additivePos * horizontalSpeed * Time.deltaTime);
+
+            transform.position += ((Vector3)additivePos * horizontalSpeed * Time.deltaTime);
         }
 
         rb.angularVelocity = Mathf.Clamp(rb.angularVelocity, -maxAngularVel, maxAngularVel);
+        prevPos = rb.position.x;
     }
 
     private void OnCollisionEnter2D(Collision2D col)
     {
+        if (col.transform.tag == "Ramp")
+        {
+            onRamp = true;
+        }
+        else
+        {
+            onRamp = false;
+        }
+
         if (pieces.Count == 1) return;
 
         if (col.transform.tag == "Blade") {
             BreakOff(new List<Transform> { col.otherCollider.transform });
+            return;
+        }
+
+        if(col.transform.tag == "Door")
+        {
+            List<Transform> toBeRemoved = new List<Transform>();
+            if(prevPos < 0)
+            {
+                print(col.otherCollider.name);
+                if (col.otherCollider.transform.position.x > col.transform.position.x) return;
+
+                foreach(Transform piece in pieces)
+                {
+                    if(piece.transform.position.x > col.otherCollider.transform.position.x)
+                    {
+                        toBeRemoved.Add(piece);
+                    }
+                }
+            } else
+            {
+                if (col.otherCollider.transform.position.x > col.transform.position.x) return;
+                foreach (Transform piece in pieces)
+                {
+                    if (piece.transform.position.x < col.otherCollider.transform.position.x)
+                    {
+                        toBeRemoved.Add(piece);
+                    }
+                }
+            }
+
+            BreakOff(toBeRemoved);
             return;
         }
 
@@ -102,24 +154,17 @@ public class PlayerMovement : MonoBehaviour {
                 return;
             }
 
-            if (transform.rotation.z > 0)
+            List<Transform> broken = new List<Transform>();
+
+            foreach(Transform piece in pieces)
             {
-                List<Transform> broken = pieces.GetRange(1, hitIndex - 1);
-                BreakOff(broken);
-            }
-            else
-            {
-                int len = pieces.Count - 1 - hitIndex;
-                if (len == hitIndex)
+                if(piece.position.y < hit.transform.position.y)
                 {
-                    List<Transform> broken = pieces.GetRange(hitIndex + 1, len);
-                    BreakOff(broken);
-                } else
-                {
-                    List<Transform> broken = pieces.GetRange(hitIndex + 1, (pieces.Count - 1) - hitIndex);
-                    BreakOff(broken);
+                    broken.Add(piece);
                 }
             }
+
+            BreakOff(broken);
 
             breakDelayTimer = Time.timeSinceLevelLoad + 2;
         }
@@ -137,41 +182,12 @@ public class PlayerMovement : MonoBehaviour {
     {
         foreach (Transform orphan in orphans)
         {
-            //print(orphan.name);
-            if (orphan.tag == "Ball")
-            {
-                pieces.Remove(orphan);
-                Destroy(orphan.gameObject);
-                continue;
-            }
-
             orphan.parent = null;
             orphan.gameObject.AddComponent<Rigidbody2D>();
             pieces.Remove(orphan);
         }
 
         forceAmount -= (forceChangeIncrement * orphans.Count);
-
-        // Anchor fixes
-        if (pieces.Count == 3)
-        {
-            Destroy(pieces[0].gameObject);
-            Destroy(pieces[2].gameObject);
-
-            pieces.Remove(pieces[0]);
-            pieces.Remove(pieces[1]);
-        } else if(pieces.Count == 2)
-        {
-            if(pieces[0].tag == "Ball")
-            {
-                Destroy(pieces[0].gameObject);
-                pieces.RemoveAt(0);
-            } else
-            {
-                Destroy(pieces[1].gameObject);
-                pieces.RemoveAt(1);
-            }
-        }
     }
 
     private void OnParticleCollision(GameObject other)

@@ -7,6 +7,9 @@ TagManager:
   - Ball
   - Floor
   - Blade
+  - Door
+  - Piece
+  - Ramp
   layers:
   - Default
   - TransparentFX
@@ -18,8 +21,8 @@ TagManager:
   - 
   - Ball
   - Player
-  - 
-  - 
+  - Piece
+  - Ramp
   - 
   - 
   - 
