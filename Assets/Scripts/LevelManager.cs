@@ -7,6 +7,7 @@ public class LevelManager : MonoBehaviour {
     public static LevelManager Instance;
 
     public Transform currentFloor;
+    public GameObject introText;
 
     private void Awake()
     {
@@ -14,11 +15,14 @@ public class LevelManager : MonoBehaviour {
     }
 
     void Start () {
-		
+        introText.SetActive(true);
 	}
 	
 	void Update () {
-		
+		if(Input.GetKey(KeyCode.Space))
+        {
+            introText.SetActive(false);
+        }
 	}
 
     public void ChangeRoom(Transform nextRoom)
