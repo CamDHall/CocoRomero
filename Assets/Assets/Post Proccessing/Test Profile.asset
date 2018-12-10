@@ -13,34 +13,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   settings:
   - {fileID: 114659382270471634}
-  - {fileID: 114651927502013444}
---- !u!114 &114651927502013444
-MonoBehaviour:
-  m_ObjectHideFlags: 3
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d65e486e4de6e5448a8fbb43dc8756a0, type: 3}
-  m_Name: Grain
-  m_EditorClassIdentifier: 
-  active: 0
-  enabled:
-    overrideState: 1
-    value: 1
-  colored:
-    overrideState: 1
-    value: 1
-  intensity:
-    overrideState: 1
-    value: 0.586
-  size:
-    overrideState: 1
-    value: 2.388
-  lumContrib:
-    overrideState: 0
-    value: 0.8
 --- !u!114 &114659382270471634
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -98,8 +70,8 @@ MonoBehaviour:
     overrideState: 0
     value: 0
   colorFilter:
-    overrideState: 1
-    value: {r: 1, g: 1, b: 1, a: 1}
+    overrideState: 0
+    value: {r: 1.7169812, g: 1.6116946, b: 1.6127255, a: 1}
   hueShift:
     overrideState: 0
     value: 0

@@ -128,8 +128,13 @@ public class PlayerMovement : MonoBehaviour {
             return;
         }
 
-        if (Mathf.Abs(col.relativeVelocity.x) > maxImpactVel && Mathf.Abs(col.relativeVelocity.y) > maxImpactVel && breakDelayTimer < Time.timeSinceLevelLoad)
+        float relativeX = Mathf.Abs(col.relativeVelocity.x);
+        float relativeY = Mathf.Abs(col.relativeVelocity.y);
+
+        if ((relativeX > maxImpactVel || (relativeY > maxImpactVel && relativeX > 1.3f))
+            && breakDelayTimer < Time.timeSinceLevelLoad)
         {
+            print(relativeX);
             if (pieces.Count == 3)
             {
                 Destroy(pieces[0].gameObject);
