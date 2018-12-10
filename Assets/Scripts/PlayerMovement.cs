@@ -13,13 +13,10 @@ public class PlayerMovement : MonoBehaviour {
     public int maxAngularVel;
     public float maxImpactVel;
 
-    float horizontalCooldownTimer = 0;
     float signVal;
     float breakDelayTimer;
     float forceChangeIncrement;
     float prevPos;
-
-    int hitIndex;
 
     Vector2 additivePos;
     Vector2 playerInput;
@@ -81,6 +78,13 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnCollisionEnter2D(Collision2D col)
     {
+        if(col.transform.tag == "Platform")
+        {
+            transform.parent = col.transform;
+        } else
+        {
+            transform.parent = null;
+        }
         if (col.transform.tag == "Ramp")
         {
             onRamp = true;
@@ -134,7 +138,6 @@ public class PlayerMovement : MonoBehaviour {
         if ((relativeX > maxImpactVel || (relativeY > maxImpactVel && relativeX > 1.3f))
             && breakDelayTimer < Time.timeSinceLevelLoad)
         {
-            print(relativeX);
             if (pieces.Count == 3)
             {
                 Destroy(pieces[0].gameObject);
@@ -148,7 +151,6 @@ public class PlayerMovement : MonoBehaviour {
             }
 
             Transform hit = col.otherCollider.transform;
-            hitIndex = pieces.IndexOf(hit);
 
             bool end1Less = pieces[0].position.y < col.transform.position.y;
             bool end2Less = pieces[pieces.Count - 1].position.y < col.transform.position.y;
