@@ -181,7 +181,7 @@ public class PlayerMovement : MonoBehaviour {
     {
         if(coll.tag == "Floor")
         {
-            LevelManager.Instance.ChangeRoom(coll.transform);
+            CameraController.Instance.MoveToRoom(coll.transform);
         }
     }
 

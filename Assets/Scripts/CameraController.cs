@@ -5,24 +5,27 @@ using UnityEngine;
 public class CameraController : MonoBehaviour {
 
     public static CameraController Instance;
+    public Transform currentFloor;
 
     private void Awake()
     {
         Instance = this;
     }
 
-    private void Start()
-    {
-
-    }
-
-
-    void Update () {
-
-	}
-
     public void MoveToRoom(Transform nextRoomPos)
     {
-        transform.position = new Vector3(nextRoomPos.position.x, transform.position.y + nextRoomPos.localPosition.y, -10);
+        if(currentFloor == null)
+        {
+            currentFloor = nextRoomPos;
+            return;
+        }
+
+        float heightDiff = nextRoomPos.position.y - currentFloor.position.y;
+
+        float yValue = transform.position.y + heightDiff;
+        Vector3 newPos = new Vector3(nextRoomPos.position.x, yValue, -10);
+        transform.position = newPos;
+
+        currentFloor = nextRoomPos;
     }
 }
