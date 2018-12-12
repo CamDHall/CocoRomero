@@ -49,9 +49,18 @@ public class ColorAssigner : EditorWindow {
             {
                 if (sprite.tag == "Piece") continue;
 
-                float highestPoint = sprite.bounds.size.y
-                    + sprite.transform.localPosition.y;
+                float highestPoint = 0;
 
+                if (sprite.tag == "Platform")
+                {
+                    highestPoint = sprite.bounds.size.y
+                        + sprite.transform.parent.localPosition.y;
+                }
+                else
+                {
+                    highestPoint = sprite.bounds.size.y
+                    + sprite.transform.localPosition.y;
+                }
                 if (highestPoint > highHeight)
                 {
                     sprite.color = highColor;
@@ -67,7 +76,7 @@ public class ColorAssigner : EditorWindow {
 
                 if (sprite.tag == "Platform")
                 {
-                    Platform platform = sprite.GetComponent<Platform>();
+                    Platform platform = sprite.transform.parent.GetComponent<Platform>();
                     platform.safeColor = safeColor;
                     platform.moderateColor = moderateColor;
                     platform.highColor = highColor;

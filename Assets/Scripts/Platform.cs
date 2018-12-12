@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum ObstacleType { Horiztonal, Vertical }
-[RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(BoxCollider2D))]
 public class Platform : MonoBehaviour {
 
     public Color safeColor;
@@ -14,6 +12,8 @@ public class Platform : MonoBehaviour {
     public int safeHeight;
     public int moderateHeight;
     public int highHeight;
+
+    public int startingDir;
 
     public float moveSpeed;
     public float directionTimerLength;
@@ -31,10 +31,10 @@ public class Platform : MonoBehaviour {
     Move platformMove;
 
 	void Start () {
-        horizontalDir = transform.right;
-        verticalDir = transform.up;
-        rb = GetComponent<Rigidbody2D>();
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        horizontalDir = transform.right * startingDir;
+        verticalDir = transform.up * startingDir;
+        rb = GetComponentInChildren<Rigidbody2D>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         
         rb.gravityScale = 0;
         rb.mass = 999999999;
@@ -57,23 +57,26 @@ public class Platform : MonoBehaviour {
             directionTimer = Time.timeSinceLevelLoad + directionTimerLength;
         }
 
+        if (ObstacleType.Vertical == obstacleType)
+        {
             float highestPoint = spriteRenderer.size.y
         + transform.localPosition.y;
 
-        if (highestPoint > highHeight)
-        {
-            currentTargetColor = highColor;
-        }
-        else if (highestPoint > safeHeight)
-        {
-            currentTargetColor = moderateColor;
-        }
-        else
-        {
-            currentTargetColor = safeColor;
-        }
+            if (highestPoint > highHeight)
+            {
+                currentTargetColor = highColor;
+            }
+            else if (highestPoint > safeHeight)
+            {
+                currentTargetColor = moderateColor;
+            }
+            else
+            {
+                currentTargetColor = safeColor;
+            }
 
-        spriteRenderer.color = Color.Lerp(spriteRenderer.color, currentTargetColor, Time.deltaTime * 10);
+            spriteRenderer.color = Color.Lerp(spriteRenderer.color, currentTargetColor, Time.deltaTime * 10);
+        }
     }
 
     void FixedUpdate () {

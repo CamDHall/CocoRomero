@@ -80,7 +80,7 @@ public class PlayerMovement : MonoBehaviour {
     {
         if(col.transform.tag == "Platform")
         {
-            transform.parent = col.transform;
+            transform.parent = col.transform.parent;
         } else
         {
             transform.parent = null;
