@@ -47,12 +47,13 @@ public class ColorAssigner : EditorWindow {
 
             foreach (SpriteRenderer sprite in sprites)
             {
+                if (sprite.tag == "Piece") continue;
+
                 float highestPoint = sprite.bounds.size.y
                     + sprite.transform.localPosition.y;
 
                 if (highestPoint > highHeight)
                 {
-                    if (sprite.name == "ThickPlatform") Debug.Log(highestPoint);
                     sprite.color = highColor;
                 }
                 else if (highestPoint > safeHeight)
