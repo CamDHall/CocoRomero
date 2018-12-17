@@ -10,16 +10,11 @@ public class CameraController : MonoBehaviour {
     private void Awake()
     {
         Instance = this;
+        MoveToRoom(currentFloor);
     }
 
     public void MoveToRoom(Transform nextRoomPos)
     {
-        if(currentFloor == null)
-        {
-            currentFloor = nextRoomPos;
-            return;
-        }
-
         float heightDiff = nextRoomPos.position.y - currentFloor.position.y;
 
         float yValue = transform.position.y + heightDiff;

@@ -12,6 +12,7 @@ TagManager:
   - Ramp
   - Room
   - Platform
+  - Belt
   layers:
   - Default
   - TransparentFX

@@ -13,10 +13,13 @@ public class PlayerMovement : MonoBehaviour {
     public int maxAngularVel;
     public float maxImpactVel;
 
+    [HideInInspector] public bool isOnVerticalBelt;
+
     float signVal;
     float breakDelayTimer;
     float forceChangeIncrement;
     float prevPos;
+    float beltCenterX;
 
     Vector2 additivePos;
     Vector2 playerInput;
@@ -46,13 +49,22 @@ public class PlayerMovement : MonoBehaviour {
 	void Update () {
         playerInput.x = Input.GetAxis("Horizontal");
         playerInput.y = Input.GetAxis("Vertical");
+
+        if(isOnVerticalBelt)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, 
+                new Vector3(beltCenterX, transform.localPosition.y, 0), Time.deltaTime * 5);
+
+            transform.localRotation = Quaternion.Lerp(transform.localRotation, 
+                Quaternion.Euler(new Vector3(0, 0, 90)), Time.deltaTime * 5);
+        }
     }
 
     private void FixedUpdate()
     {
         additivePos = Vector2.zero;
 
-        if (playerInput.y != 0)
+        if (playerInput.y != 0 && !isOnVerticalBelt)
         {
             signVal = Mathf.Sign(playerInput.y);
             float currentForceAmount = Time.deltaTime* forceAmount *-signVal; 
@@ -67,7 +79,13 @@ public class PlayerMovement : MonoBehaviour {
 
         if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.5f)
         {
-            additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
+            if(!isOnVerticalBelt)
+            {
+                additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
+            } else
+            {
+                additivePos.y = Vector3.up.y * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
+            }
 
             transform.position += ((Vector3)additivePos * horizontalSpeed * Time.deltaTime);
         }
@@ -78,13 +96,15 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        if(col.transform.tag == "Platform")
+        if (col.transform.tag == "Platform")
         {
             transform.parent = col.transform.parent;
-        } else
+        }
+        else
         {
             transform.parent = null;
         }
+
         if (col.transform.tag == "Ramp")
         {
             onRamp = true;
@@ -177,12 +197,57 @@ public class PlayerMovement : MonoBehaviour {
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D coll)
+    private void OnTriggerEnter2D(Collider2D col)
     {
-        if(coll.tag == "Floor")
+
+        if (col.tag == "Floor")
         {
-            CameraController.Instance.MoveToRoom(coll.transform);
+            CameraController.Instance.MoveToRoom(col.transform);
+
+            if (isOnVerticalBelt)
+            {
+                transform.parent = null;
+                foreach(Transform piece in pieces)
+                {
+                    piece.gameObject.SetActive(false);
+                }
+
+                transform.position = col.transform.position + col.transform.up * 0.5f;
+                rb.gravityScale = 1;
+                isOnVerticalBelt = false;
+                transform.rotation = Quaternion.identity;
+
+                foreach (Transform piece in pieces)
+                {
+                    piece.gameObject.SetActive(true);
+                }
+            }
         }
+
+        if (col.transform.tag == "Belt")
+        {
+            transform.parent = col.transform.parent;
+            ConveyorBelt belt = col.transform.parent.GetComponent<ConveyorBelt>();
+
+            if (belt.beltType == ObstacleType.Vertical)
+            {
+                beltCenterX = col.transform.GetComponent<BoxCollider2D>().bounds.extents.x * 0.8f;
+
+                isOnVerticalBelt = true;
+                rb.gravityScale = 0;
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D col)
+    {
+        //if(isOnVerticalBelt)
+        //{
+        //    transform.parent = null;
+        //    rb.gravityScale = 1;
+        //    isOnVerticalBelt = false;
+        //    transform.rotation = Quaternion.identity;
+        //}
     }
 
     void BreakOff(List<Transform> orphans)
