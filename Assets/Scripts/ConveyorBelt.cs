@@ -12,20 +12,7 @@ public class ConveyorBelt : MonoBehaviour {
     public SpriteRenderer spriteRenderer;
     BoxCollider2D box;
     Vector2 offset;
-    Vector2 offsetModifyer;
     Vector2 spriteDir;
-
-    void Start () {
-        offset = Vector2.zero;
-
-        if(beltType == ObstacleType.Horiztonal)
-        {
-            offsetModifyer = new Vector2(0.1f * beltDirection, 0);
-        } else
-        {
-            offsetModifyer = new Vector2(0, 0.1f * beltDirection);
-        }
-	}
 	
 	// Update is called once per frame
 	void Update () {

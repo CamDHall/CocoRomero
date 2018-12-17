@@ -7,6 +7,7 @@ public class PlayerMovement : MonoBehaviour {
 
     public static PlayerMovement Instance;
 
+    public Transform currentFloor;
     public float horizontalSpeed;
     public float moveSpeed;
     public float forceAmount;
@@ -19,7 +20,6 @@ public class PlayerMovement : MonoBehaviour {
     float breakDelayTimer;
     float forceChangeIncrement;
     float prevPos;
-    float beltCenterX;
 
     Vector2 additivePos;
     Vector2 playerInput;
@@ -44,6 +44,8 @@ public class PlayerMovement : MonoBehaviour {
         signVal = 0;
         forceChangeIncrement = (forceAmount / pieces.Count) * 0.85f;
         prevPos = 0;
+
+        CameraController.Instance.MoveToRoom(currentFloor);
 	}
 	
 	void Update () {
@@ -53,7 +55,7 @@ public class PlayerMovement : MonoBehaviour {
         if(isOnVerticalBelt)
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, 
-                new Vector3(beltCenterX, transform.localPosition.y, 0), Time.deltaTime * 5);
+                new Vector3(0, transform.localPosition.y, 0), Time.deltaTime * 5);
 
             transform.localRotation = Quaternion.Lerp(transform.localRotation, 
                 Quaternion.Euler(new Vector3(0, 0, 90)), Time.deltaTime * 5);
@@ -77,14 +79,16 @@ public class PlayerMovement : MonoBehaviour {
             rb.AddTorque(currentForceAmount, ForceMode2D.Impulse);
         }
 
-        if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.5f)
+        if (isOnVerticalBelt)
+        {
+            additivePos.y = Vector3.up.y * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
+        
+            transform.position += ((Vector3)additivePos * horizontalSpeed * Time.deltaTime);
+        } else if (playerInput.x != 0 && Mathf.Abs(rb.angularVelocity) < 0.5f)
         {
             if(!isOnVerticalBelt)
             {
                 additivePos.x = Vector3.right.x * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
-            } else
-            {
-                additivePos.y = Vector3.up.y * Mathf.Sign(playerInput.x) * (moveSpeed * Time.deltaTime);
             }
 
             transform.position += ((Vector3)additivePos * horizontalSpeed * Time.deltaTime);
@@ -199,31 +203,6 @@ public class PlayerMovement : MonoBehaviour {
 
     private void OnTriggerEnter2D(Collider2D col)
     {
-
-        if (col.tag == "Floor")
-        {
-            CameraController.Instance.MoveToRoom(col.transform);
-
-            if (isOnVerticalBelt)
-            {
-                transform.parent = null;
-                foreach(Transform piece in pieces)
-                {
-                    piece.gameObject.SetActive(false);
-                }
-
-                transform.position = col.transform.position + col.transform.up * 0.5f;
-                rb.gravityScale = 1;
-                isOnVerticalBelt = false;
-                transform.rotation = Quaternion.identity;
-
-                foreach (Transform piece in pieces)
-                {
-                    piece.gameObject.SetActive(true);
-                }
-            }
-        }
-
         if (col.transform.tag == "Belt")
         {
             transform.parent = col.transform.parent;
@@ -231,23 +210,20 @@ public class PlayerMovement : MonoBehaviour {
 
             if (belt.beltType == ObstacleType.Vertical)
             {
-                beltCenterX = col.transform.GetComponent<BoxCollider2D>().bounds.extents.x * 0.8f;
-
                 isOnVerticalBelt = true;
                 rb.gravityScale = 0;
             }
         }
     }
 
-    private void OnTriggerExit2D(Collider2D col)
+    public void ResetFromBelt(Vector3 startingPoint, Transform newFloor)
     {
-        //if(isOnVerticalBelt)
-        //{
-        //    transform.parent = null;
-        //    rb.gravityScale = 1;
-        //    isOnVerticalBelt = false;
-        //    transform.rotation = Quaternion.identity;
-        //}
+        transform.parent = newFloor;
+        transform.localPosition = new Vector3(startingPoint.x, 0.5f, 0);
+        transform.localRotation = Quaternion.identity;
+        rb.gravityScale = 1;
+
+        isOnVerticalBelt = false;
     }
 
     void BreakOff(List<Transform> orphans)
